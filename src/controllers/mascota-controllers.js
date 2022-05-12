@@ -49,7 +49,7 @@ const getMascota = async (req, res) => {
                 .input('idUsuario', TYPES.Int, idUsuario)
                 .query("select * from mascota where idUsuario=@idusuario")
 
-            res.status(202).json(findMascota.recordset)
+            res.status(202).json(findMascota)
             console.log('mascotas encontradas')
             db.close()
         }
@@ -63,8 +63,7 @@ const getMascota = async (req, res) => {
 
 //find by id
 const getIdMascota = async (req, res) => {
-    const { body } = req
-    const { id } = body
+    const { id } = req.params
     const autorizacion = req.get('authorization')
     if (!autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
