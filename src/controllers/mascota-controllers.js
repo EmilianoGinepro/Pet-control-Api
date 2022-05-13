@@ -49,8 +49,9 @@ const getMascota = async (req, res) => {
                 .input('idUsuario', TYPES.Int, idUsuario)
                 .query("select * from mascota where idUsuario=@idusuario")
 
-            res.status(202).json(findMascota)
+            res.status(202).json(findMascota.recordsets)
             console.log('mascotas encontradas')
+            console.log();
             db.close()
         }
         catch (err) {
