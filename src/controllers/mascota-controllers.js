@@ -49,7 +49,7 @@ const getMascota = async (req, res) => {
                 .input('idUsuario', TYPES.Int, idUsuario)
                 .query("select * from mascota where idUsuario=@idusuario")
 
-            res.status(202).json(findMascota.recordsets)
+            res.status(202).json(findMascota.recordset)
             console.log('mascotas encontradas')
             console.log();
             db.close()
@@ -78,7 +78,7 @@ const getIdMascota = async (req, res) => {
                 .input('idUsuario', TYPES.Int, idUsuario)
                 .query("select * from mascota where id=@id and idUsuario=@idUsuario")
 
-            res.status(202).json(findByIdMascota.recordsets)
+            res.status(202).json(findByIdMascota.recordset)
             console.log('mascota encontrada')
             db.close()
         }
