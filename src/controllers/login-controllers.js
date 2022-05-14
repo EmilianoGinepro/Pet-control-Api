@@ -110,8 +110,13 @@ const putNewPass = async (req, res) => {
             .input('email', TYPES.VarChar(100), email)
             .query('select * from usuario where email=@email')
 
-        if (user.recordset[0] == undefined) {
-            res.status(404).send('email incorrecto')
+        if (user.recordset[0] == undefined || email !== user.recordset[0].email) {
+
+            console.log('email incorrecto');
+            res.status(404).send({
+                status: "email incorrecto"
+            })
+
         } else {
             const idUser = user.recordset[0].id
 
@@ -154,6 +159,7 @@ const postLoginUser = async (req, res) => {
     const { body } = req;
     const { email, password } = body;
 
+
     try {
         await db.connect()
         const user = await db.request()
@@ -161,28 +167,39 @@ const postLoginUser = async (req, res) => {
             .query('select * from usuario where email=@email')
         db.close()
 
-        passwordCorrect = await bcrypt.compare(password, user.recordset[0].pwd)
+        if (user.recordset[0] == undefined || email !== user.recordset[0].email) {
 
-        if (!(user && passwordCorrect)) {
-            console.log('usuario incorrecto o contraseña incorrecta');
-            res.status(403).send('usuario incorrecto o contraseña incorrecta')
-        } else {
-            const userToken = {
-                id: user.recordset[0].id,
-                email: user.recordset[0].email
-            }
-
-            const token = jwt.sign(userToken, TOKEN_PASSWORD)
-
-            console.log("login exitoso");
-            res.status(200).send({
-                id: user.recordset[0].id,
-                nombre: user.recordset[0].nombre,
-                apellido: user.recordset[0].apellido,
-                email: user.recordset[0].email,
-                token
+            console.log('el user no existe');
+            res.status(404).send({
+                status: "usuario o contraseña invalido"
             })
+
+        } else {
+
+            passwordCorrect = await bcrypt.compare(password, user.recordset[0].pwd)
+
+            if (!(user && passwordCorrect)) {
+                console.log('usuario incorrecto o contraseña incorrecta');
+                res.status(403).send('usuario incorrecto o contraseña incorrecta')
+            } else {
+                const userToken = {
+                    id: user.recordset[0].id,
+                    email: user.recordset[0].email
+                }
+
+                const token = jwt.sign(userToken, TOKEN_PASSWORD)
+
+                console.log("login exitoso");
+                res.status(200).send({
+                    id: user.recordset[0].id,
+                    nombre: user.recordset[0].nombre,
+                    apellido: user.recordset[0].apellido,
+                    email: user.recordset[0].email,
+                    token
+                })
+            }
         }
+
     }
     catch (err) {
         console.log(err)

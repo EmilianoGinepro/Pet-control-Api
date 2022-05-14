@@ -1,3 +1,4 @@
+const fileUpload = require('express-fileupload')
 const { db } = require('../db/connect')
 const { TYPES } = require('mssql')
 const { tokenFunction } = require('../config/token')
@@ -5,14 +6,27 @@ const { tokenFunction } = require('../config/token')
 
 //create
 const postMascota = async (req, res) => {
+
     const { body } = req
     const { nombre, especie, sexo, fecha_nacimiento, peso, observaciones } = body
     const autorizacion = req.get('authorization')
     const idUsuario = tokenFunction(autorizacion)
 
+    /* if (req.files) {
+         console.log(req.files);
+     }
+     else {
+         console.log('no hay file');
+     }
+ 
+         let EDFile = req.files.foto
+         EDFile.mv(`../files/${EDFile.name}`, err => {
+             if (err) return res.status(500).send('no se carga la imagen')
+             return `../files/${EDFile.name}`
+         })
+     */
     try {
         await db.connect()
-
         await db.request()
             .input('idUsuario', TYPES.Int, idUsuario)
             .input('nombre', TYPES.VarChar(50), nombre)
@@ -95,7 +109,7 @@ const putMascota = async (req, res) => {
 
 }
 
-//delete
+//deletebhay que arreglarlo
 const deleteMascota = async (req, res) => {
     const { body } = req
     const { id } = body
