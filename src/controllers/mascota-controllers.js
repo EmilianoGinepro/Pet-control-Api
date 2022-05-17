@@ -18,7 +18,7 @@ const postMascota = async (req, res) => {
      else {
          console.log('no hay file');
      }
- 
+
          let EDFile = req.files.foto
          EDFile.mv(`../files/${EDFile.name}`, err => {
              if (err) return res.status(500).send('no se carga la imagen')
@@ -90,7 +90,7 @@ const getIdMascota = async (req, res) => {
             const findByIdMascota = await db.request()
                 .input('id', TYPES.Int, id)
                 .input('idUsuario', TYPES.Int, idUsuario)
-                .query("select * from mascota where id=@id and idUsuario=@idUsuario")
+                .query("select * , convert(varchar(10), fecha_nacimiento,103) fecha from mascota where id=@id and idUsuario=@idUsuario")
 
             res.status(202).json(findByIdMascota.recordset)
             console.log('mascota encontrada')
