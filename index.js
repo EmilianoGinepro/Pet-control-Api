@@ -2,7 +2,7 @@ const fileUpload = require('express-fileupload')
 const express = require('express');
 var cors = require('cors')
 const app = express();
-const { Port, Host, PORT } = require('./src/config/config');
+const { Port, Host } = require('./src/config/config');
 
 
 app.use(express.json());
@@ -18,5 +18,5 @@ app.use('/login', require('./src/routes/login-routes'))
 app.use('/mascota', require('./src/routes/mascota-routes'))
 
 app.listen(Port, () => {
-  console.log(`Escuchando en ${Host} puerto ${Port || PORT}`)
+  console.log(`Escuchando en ${Host} puerto ${Port}`)
 })
