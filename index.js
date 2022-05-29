@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 })
 
 app.use('/login', require('./src/routes/login-routes'))
-app.use('/mascota', require('./src/routes/mascota-routes'))
+app.use('/pet', require('./src/routes/mascota-routes'))
 
 app.listen(Port, () => {
   console.log(`Escuchando en ${Host} puerto ${Port}`)
