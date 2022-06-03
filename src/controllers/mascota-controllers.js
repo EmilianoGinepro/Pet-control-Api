@@ -33,9 +33,9 @@ const postMascota = async (req, res) => {
             .input('sexo', TYPES.VarChar(50), sexo)
             .input('fecha_nacimiento', TYPES.DateTime, fecha_nacimiento)
             .input('peso', TYPES.Float, peso)
-            .input('observaciones', TYPES.VarChar(100), observaciones)
+            .input('observaciones', TYPES.VarChar(200), observaciones)
             //falta hacer el input de foto
-            .query("insert into mascota(idUsuario,nombre,especie,sexo,fecha_nacimiento,peso,observaciones) values (@idUsuario,@nombre,@especie,@sexo,@fecha_nacimiento,@peso,@observaciones)")
+            .query("declare @UserID int insert into mascota(idUsuario,nombre,especie,sexo,fecha_nacimiento) values (@idUsuario,@nombre,@especie,@sexo,@fecha_nacimiento) SET @UserID = @@IDENTITY insert into peso(idMascota,peso) values(@UserID,@peso) insert into observaciones(idMascota,observaciones) values (@UserID, @observaciones)")
 
         res.status(202).send('mascota ingresada')
         console.log('mascota ingresada')
@@ -48,7 +48,7 @@ const postMascota = async (req, res) => {
     }
 };
 
-//find
+//find areglar la consulta a tablas peso y observaciones
 const getMascota = async (req, res) => {
     const autorizacion = req.get('authorization')
     if (!autorizacion.startsWith('bearer ')) {
@@ -75,7 +75,7 @@ const getMascota = async (req, res) => {
 
 }
 
-//find by id
+//find by id areglar la consulta a tablas peso y observaciones
 const getIdMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
@@ -103,7 +103,7 @@ const getIdMascota = async (req, res) => {
 
 }
 
-//update
+//update revisar
 const putMascota = async (req, res) => {
     const { body } = req
     const { id } = req.params
@@ -139,7 +139,7 @@ const putMascota = async (req, res) => {
 
 }
 
-//delete
+//delete areglar la consulta a tablas peso y observaciones
 const deleteMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
