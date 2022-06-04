@@ -8,28 +8,35 @@ const updateFoto = async (req, res) => {
     const { id } = req.params
     const EDFile = req.files.foto
     const uploadPath = `${__dirname}\\files\\${EDFile.name}`
+    const autorizacion = req.get('authorization')
 
-    if (!req.files) {
-        res.status(404).send('No se cargo una imagen')
-    }
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+        res.status(403).send('token invalido')
+    } else {
 
-    EDFile.mv(uploadPath, err => {
-        if (err) {
-            res.status(500).send('no se carga la imagen')
-            console.log(err);
+        if (!req.files) {
+            res.status(404).send('No se cargo una imagen')
         }
-    })
-    try {
-        await db.connect()
-        await db.request()
-            .input('foto', TYPES.VarChar(500), uploadPath)
-            .input('id', TYPES.Int, id)
-            .query("update mascota set foto=@foto where id=@id")
-        db.close()
-        res.status(200).send('imagen subida')
-    }
-    catch (err) {
-        console.log(err)
+
+        EDFile.mv(uploadPath, err => {
+            if (err) {
+                res.status(500).send('Error al guardar la imagen')
+                console.log(err);
+            }
+        })
+
+        try {
+            await db.connect()
+            await db.request()
+                .input('foto', TYPES.VarChar(500), uploadPath)
+                .input('id', TYPES.Int, id)
+                .query("update mascota set foto=@foto where id=@id")
+            db.close()
+            res.status(200).send('Imagen subida')
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 }
 
@@ -62,12 +69,12 @@ const postMascota = async (req, res) => {
         console.log(err)
         res.status(404).send(err)
     }
-};
+}
 
 //find
 const getMascota = async (req, res) => {
     const autorizacion = req.get('authorization')
-    if (!autorizacion.startsWith('bearer ')) {
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)
@@ -88,14 +95,13 @@ const getMascota = async (req, res) => {
             res.status(404).send(err)
         }
     }
-
 }
 
 //find by
 const getIdMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
-    if (!autorizacion.startsWith('bearer ')) {
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)
@@ -116,7 +122,6 @@ const getIdMascota = async (req, res) => {
             res.status(404).send(err)
         }
     }
-
 }
 
 //update peso
@@ -125,7 +130,7 @@ const putPesoMascota = async (req, res) => {
     const { id } = req.params
     const { peso } = body
     const autorizacion = req.get('authorization')
-    if (!autorizacion.startsWith('bearer ')) {
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
         try {
@@ -152,7 +157,7 @@ const putObservacionesMascota = async (req, res) => {
     const { id } = req.params
     const { observaciones } = body
     const autorizacion = req.get('authorization')
-    if (!autorizacion.startsWith('bearer ')) {
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
         try {
@@ -173,13 +178,11 @@ const putObservacionesMascota = async (req, res) => {
     }
 }
 
-//update foto
-
 //delete
 const deleteMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
-    if (!autorizacion.startsWith('bearer ')) {
+    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)
@@ -200,7 +203,6 @@ const deleteMascota = async (req, res) => {
             res.status(404).send(err)
         }
     }
-
 }
 
 module.exports = { postMascota, getMascota, getIdMascota, putPesoMascota, putObservacionesMascota, deleteMascota, updateFoto }
