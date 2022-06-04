@@ -3,6 +3,36 @@ const { db } = require('../db/connect')
 const { TYPES } = require('mssql')
 const { tokenFunction } = require('../config/token')
 
+//cargar foto
+const updateFoto = async (req, res) => {
+    const { id } = req.params
+    const EDFile = req.files.foto
+    const uploadPath = `${__dirname}\\files\\${EDFile.name}`
+
+    if (!req.files) {
+        res.status(404).send('No se cargo una imagen')
+    }
+
+    EDFile.mv(uploadPath, err => {
+        if (err) {
+            res.status(500).send('no se carga la imagen')
+            console.log(err);
+        }
+    })
+    try {
+        await db.connect()
+        await db.request()
+            .input('foto', TYPES.VarChar(500), uploadPath)
+            .input('id', TYPES.Int, id)
+            .query("update mascota set foto=@foto where id=@id")
+        db.close()
+        res.status(200).send('imagen subida')
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+
 //create
 const postMascota = async (req, res) => {
 
@@ -11,19 +41,6 @@ const postMascota = async (req, res) => {
     const autorizacion = req.get('authorization')
     const idUsuario = tokenFunction(autorizacion)
 
-    /* if (req.files) {
-         console.log(req.files);
-     }
-     else {
-         console.log('no hay file');
-     }
-
-         let EDFile = req.files.foto
-         EDFile.mv(`../files/${EDFile.name}`, err => {
-             if (err) return res.status(500).send('no se carga la imagen')
-             return `../files/${EDFile.name}`
-         })
-     */
     try {
         await db.connect()
         await db.request()
@@ -34,8 +51,7 @@ const postMascota = async (req, res) => {
             .input('fecha_nacimiento', TYPES.DateTime, fecha_nacimiento)
             .input('peso', TYPES.Float, peso)
             .input('observaciones', TYPES.VarChar(200), observaciones)
-            //falta hacer el input de foto
-            .query("declare @UserID int insert into mascota(idUsuario,nombre,especie,sexo,fecha_nacimiento) values (@idUsuario,@nombre,@especie,@sexo,@fecha_nacimiento) SET @UserID = @@IDENTITY insert into peso(idMascota,peso) values(@UserID,@peso) insert into observaciones(idMascota,observaciones) values (@UserID, @observaciones)")
+            .query("declare @UserID int INSERT INTO mascota(idUsuario,nombre,especie,sexo,fecha_nacimiento) VALUES (@idUsuario,@nombre,@especie,@sexo,@fecha_nacimiento) SET @UserID = @@IDENTITY INSERT INTO peso(idMascota,peso) VALUES (@UserID, @peso) INSERT INTO observaciones(idMascota, observaciones) VALUES (@UserID, @observaciones) ")
 
         res.status(202).send('mascota ingresada')
         console.log('mascota ingresada')
@@ -48,7 +64,7 @@ const postMascota = async (req, res) => {
     }
 };
 
-//find areglar la consulta a tablas peso y observaciones
+//find
 const getMascota = async (req, res) => {
     const autorizacion = req.get('authorization')
     if (!autorizacion.startsWith('bearer ')) {
@@ -60,7 +76,7 @@ const getMascota = async (req, res) => {
             await db.connect()
             const findMascota = await db.request()
                 .input('idUsuario', TYPES.Int, idUsuario)
-                .query("select * from mascota where idUsuario=@idusuario")
+                .query("select  m.id,m.idUsuario,m.nombre,m.especie,sexo,convert(varchar(10), m.fecha_nacimiento,103)as fecha,p.peso, o.observaciones from mascota m INNER join peso p on m.id = p.idMascota inner join observaciones o on m.id = o.idMascota where m.idUsuario=@idusuario")
 
             res.status(202).json(findMascota.recordset)
             console.log('mascotas encontradas')
@@ -75,7 +91,7 @@ const getMascota = async (req, res) => {
 
 }
 
-//find by id areglar la consulta a tablas peso y observaciones
+//find by
 const getIdMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
@@ -89,7 +105,7 @@ const getIdMascota = async (req, res) => {
             const findByIdMascota = await db.request()
                 .input('id', TYPES.Int, id)
                 .input('idUsuario', TYPES.Int, idUsuario)
-                .query("select * , convert(varchar(10), fecha_nacimiento,103) fecha from mascota where id=@id and idUsuario=@idUsuario")
+                .query("select  m.id,m.idUsuario,m.nombre,m.especie,sexo,convert(varchar(10), m.fecha_nacimiento,103)as fecha,p.peso, o.observaciones from mascota m INNER join peso p on m.id = p.idMascota inner join observaciones o on m.id = o.idMascota where m.id=@id and m.idUsuario=@idUsuario")
 
             res.status(202).json(findByIdMascota.recordset)
             console.log('mascota encontrada')
@@ -103,43 +119,63 @@ const getIdMascota = async (req, res) => {
 
 }
 
-//update revisar
-const putMascota = async (req, res) => {
+//update peso
+const putPesoMascota = async (req, res) => {
     const { body } = req
     const { id } = req.params
-    const { nombre, especie, sexo, fecha_nacimiento, peso, observaciones } = body
+    const { peso } = body
     const autorizacion = req.get('authorization')
     if (!autorizacion.startsWith('bearer ')) {
         res.status(403).send('token invalido')
     } else {
-        const idUsuario = tokenFunction(autorizacion)
         try {
             await db.connect()
             const updateMascota = await db.request()
                 .input('id', TYPES.Int, id)
-                .input('idUsuario', TYPES.Int, idUsuario)
-                .input('nombre', TYPES.VarChar(50), nombre)
-                .input('especie', TYPES.VarChar(50), especie)
-                .input('sexo', TYPES.VarChar(50), sexo)
-                .input('fecha_nacimiento', TYPES.DateTime, fecha_nacimiento)
                 .input('peso', TYPES.Float, peso)
-                .input('observaciones', TYPES.VarChar(100), observaciones)
-                //falta el input de foto
-                .query('update mascota set nombre=@nombre, especie=@especie, sexo=@sexo, fecha_nacimiento=@fecha_nacimiento, peso=@peso, observaciones=@observaciones where id=@id and idUsuario=@idUsuario')
+                .query('update peso set peso=@peso where idMascota=@id')
             db.close()
 
-            res.status(202).json('Mascota actualizada')
-            console.log('Mascota actualizada')
+            res.status(202).json('Peso de la mascota actualizada')
+            console.log('Peso de la mascota actualizada')
         }
         catch (error) {
             console.log(error);
             res.status(404).send(err)
         }
     }
-
 }
 
-//delete areglar la consulta a tablas peso y observaciones
+//update observaciones
+const putObservacionesMascota = async (req, res) => {
+    const { body } = req
+    const { id } = req.params
+    const { observaciones } = body
+    const autorizacion = req.get('authorization')
+    if (!autorizacion.startsWith('bearer ')) {
+        res.status(403).send('token invalido')
+    } else {
+        try {
+            await db.connect()
+            await db.request()
+                .input('id', TYPES.Int, id)
+                .input('observaciones', TYPES.VarChar(100), observaciones)
+                .query('update observaciones set observaciones=@observaciones where idMascota=@id')
+            db.close()
+
+            res.status(202).json('observaciones de la mascota actualizada')
+            console.log('observaciones de la mascota actualizada')
+        }
+        catch (error) {
+            console.log(error);
+            res.status(404).send(err)
+        }
+    }
+}
+
+//update foto
+
+//delete
 const deleteMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
@@ -153,7 +189,7 @@ const deleteMascota = async (req, res) => {
             const deleteMascota = await db.request()
                 .input('id', TYPES.Int, id)
                 .input('idUsuario', TYPES.Int, idUsuario)
-                .query("delete from mascota where id=@id and idUsuario=@idUsuario")
+                .query("delete from mascota where id=@id and idUsuario=@idUsuario delete from peso where idMascota=@id delete from observaciones where idMascota=@id")
 
             res.status(202).send('mascota borrada')
             console.log('mascota borrada')
@@ -167,4 +203,4 @@ const deleteMascota = async (req, res) => {
 
 }
 
-module.exports = { postMascota, getMascota, getIdMascota, putMascota, deleteMascota }
+module.exports = { postMascota, getMascota, getIdMascota, putPesoMascota, putObservacionesMascota, deleteMascota, updateFoto }
