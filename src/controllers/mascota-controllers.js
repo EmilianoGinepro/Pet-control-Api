@@ -2,6 +2,7 @@ const fileUpload = require('express-fileupload')
 const { db } = require('../db/connect')
 const { TYPES } = require('mssql')
 const { tokenFunction } = require('../config/token')
+const { checkAutorizacion } = require('../auth/validaciones-auth')
 
 //cargar foto
 const updateFoto = async (req, res) => {
@@ -10,7 +11,9 @@ const updateFoto = async (req, res) => {
     const uploadPath = `${__dirname}\\files\\${EDFile.name}`
     const autorizacion = req.get('authorization')
 
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
 
@@ -71,10 +74,13 @@ const postMascota = async (req, res) => {
     }
 }
 
-//find
+//find  no trae la foto
 const getMascota = async (req, res) => {
     const autorizacion = req.get('authorization')
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)
@@ -97,11 +103,14 @@ const getMascota = async (req, res) => {
     }
 }
 
-//find by
+//find by  no trae la foto
 const getIdMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)
@@ -130,7 +139,10 @@ const putPesoMascota = async (req, res) => {
     const { id } = req.params
     const { peso } = body
     const autorizacion = req.get('authorization')
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         try {
@@ -157,7 +169,10 @@ const putObservacionesMascota = async (req, res) => {
     const { id } = req.params
     const { observaciones } = body
     const autorizacion = req.get('authorization')
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         try {
@@ -182,7 +197,8 @@ const putObservacionesMascota = async (req, res) => {
 const deleteMascota = async (req, res) => {
     const { id } = req.params
     const autorizacion = req.get('authorization')
-    if (autorizacion == undefined || !autorizacion.startsWith('bearer ')) {
+    let check = checkAutorizacion(autorizacion)
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         const idUsuario = tokenFunction(autorizacion)

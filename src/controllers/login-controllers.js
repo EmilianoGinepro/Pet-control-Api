@@ -6,6 +6,7 @@ const { TYPES } = require('mssql')
 const { TOKEN_PASSWORD } = require('../config/config')
 const { transporter } = require('../email/email-config')
 const { tokenFunction } = require('../config/token')
+const { checkAutorizacion } = require('../auth/validaciones-auth')
 
 //create user
 const postUser = async (req, res) => {
@@ -71,7 +72,9 @@ const putPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(pwd, saltRounds)
     const autorizacion = req.get('authorization')
 
-    if (!autorizacion.startsWith('bearer ')) {
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         const id = tokenFunction(autorizacion)
