@@ -6,7 +6,7 @@ router.post('/create/:id', postControl)
 router.get('/find/id/:id', getControl)
 router.get('/find/nombre/:id', findByNombre)
 router.get('/find/sintomas/:id', findBySintomas)
-router.get('/find/fehca/:id', findByFecha)
+router.get('/find/fecha/:id', findByFecha)
 router.delete('/delete/:id', deleteControl)
 
 module.exports = router

@@ -3,15 +3,19 @@ const { db } = require('../db/connect')
 const { TYPES } = require('mssql')
 const { tokenFunction } = require('../config/token')
 const { checkAutorizacion } = require('../auth/validaciones-auth')
+const { nanoid } = require('nanoid')
 
 //cargar foto
 const updateFoto = async (req, res) => {
-    const { id } = req.params
-    const EDFile = req.files.foto
-    const uploadPath = `${__dirname}\\files\\${EDFile.name}`
-    const autorizacion = req.get('authorization')
 
-    let check = checkAutorizacion(autorizacion)
+    const { params, files } = req
+    const { id } = params
+
+    const nameFoto = nanoid(5)
+    const EDFile = files.foto
+    const uploadPath = `${__dirname}\\files\\${nameFoto}${EDFile.name}`
+    const autorizacion = req.get('authorization')
+    const check = checkAutorizacion(autorizacion)
 
     if (check == false) {
         res.status(403).send('token invalido')
@@ -48,6 +52,7 @@ const postMascota = async (req, res) => {
 
     const { body } = req
     const { nombre, especie, sexo, fecha_nacimiento, peso, observaciones } = body
+
     const autorizacion = req.get('authorization')
     const idUsuario = tokenFunction(autorizacion)
 
@@ -76,13 +81,14 @@ const postMascota = async (req, res) => {
 
 //find  no trae la foto
 const getMascota = async (req, res) => {
-    const autorizacion = req.get('authorization')
 
-    let check = checkAutorizacion(autorizacion)
+    const autorizacion = req.get('authorization')
+    const check = checkAutorizacion(autorizacion)
 
     if (check == false) {
         res.status(403).send('token invalido')
     } else {
+
         const idUsuario = tokenFunction(autorizacion)
 
         try {
@@ -105,10 +111,11 @@ const getMascota = async (req, res) => {
 
 //find by  no trae la foto
 const getIdMascota = async (req, res) => {
-    const { id } = req.params
-    const autorizacion = req.get('authorization')
 
-    let check = checkAutorizacion(autorizacion)
+    const { id } = req.params
+
+    const autorizacion = req.get('authorization')
+    const check = checkAutorizacion(autorizacion)
 
     if (check == false) {
         res.status(403).send('token invalido')
@@ -135,12 +142,13 @@ const getIdMascota = async (req, res) => {
 
 //update peso
 const putPesoMascota = async (req, res) => {
-    const { body } = req
-    const { id } = req.params
-    const { peso } = body
-    const autorizacion = req.get('authorization')
 
-    let check = checkAutorizacion(autorizacion)
+    const { body, params } = req
+    const { id } = params
+    const { peso } = body
+
+    const autorizacion = req.get('authorization')
+    const check = checkAutorizacion(autorizacion)
 
     if (check == false) {
         res.status(403).send('token invalido')
@@ -165,12 +173,13 @@ const putPesoMascota = async (req, res) => {
 
 //update observaciones
 const putObservacionesMascota = async (req, res) => {
-    const { body } = req
-    const { id } = req.params
-    const { observaciones } = body
-    const autorizacion = req.get('authorization')
 
-    let check = checkAutorizacion(autorizacion)
+    const { body, params } = req
+    const { id } = params
+    const { observaciones } = body
+
+    const autorizacion = req.get('authorization')
+    const check = checkAutorizacion(autorizacion)
 
     if (check == false) {
         res.status(403).send('token invalido')
@@ -195,17 +204,21 @@ const putObservacionesMascota = async (req, res) => {
 
 //delete
 const deleteMascota = async (req, res) => {
+
     const { id } = req.params
+
     const autorizacion = req.get('authorization')
-    let check = checkAutorizacion(autorizacion)
+    const check = checkAutorizacion(autorizacion)
+
     if (check == false) {
         res.status(403).send('token invalido')
     } else {
+
         const idUsuario = tokenFunction(autorizacion)
 
         try {
             await db.connect()
-            const deleteMascota = await db.request()
+            await db.request()
                 .input('id', TYPES.Int, id)
                 .input('idUsuario', TYPES.Int, idUsuario)
                 .query("delete from mascota where id=@id and idUsuario=@idUsuario delete from peso where idMascota=@id delete from observaciones where idMascota=@id")
