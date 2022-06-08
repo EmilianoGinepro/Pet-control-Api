@@ -1,9 +1,9 @@
-const fileUpload = require('express-fileupload')
-const { db } = require('../db/connect')
+const { nanoid } = require('nanoid')
 const { TYPES } = require('mssql')
+const { db } = require('../db/connect')
 const { tokenFunction } = require('../config/token')
 const { checkAutorizacion } = require('../auth/validaciones-auth')
-const { nanoid } = require('nanoid')
+
 
 //cargar foto
 const updateFoto = async (req, res) => {
@@ -99,7 +99,6 @@ const getMascota = async (req, res) => {
 
             res.status(202).json(findMascota.recordset)
             console.log('mascotas encontradas')
-            console.log();
             db.close()
         }
         catch (err) {
