@@ -6,11 +6,14 @@ const { TYPES } = require('mssql')
 const { TOKEN_PASSWORD } = require('../config/config')
 const { transporter } = require('../email/email-config')
 const { tokenFunction } = require('../config/token')
+const { checkAutorizacion } = require('../auth/validaciones-auth')
 
 //create user
 const postUser = async (req, res) => {
+
     const { body } = req
     const { nombre, apellido, email, pwd } = body
+
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(pwd, saltRounds)
 
@@ -65,13 +68,17 @@ const postUser = async (req, res) => {
 
 //cambiar contraseña
 const putPassword = async (req, res) => {
+
     const { body } = req
     const { pwd } = body
+
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(pwd, saltRounds)
     const autorizacion = req.get('authorization')
 
-    if (!autorizacion.startsWith('bearer ')) {
+    let check = checkAutorizacion(autorizacion)
+
+    if (check == false) {
         res.status(403).send('token invalido')
     } else {
         const id = tokenFunction(autorizacion)
@@ -98,8 +105,10 @@ const putPassword = async (req, res) => {
 
 //recuperar contraseña
 const putNewPass = async (req, res) => {
+
     const { body } = req
     const { email } = body
+
     let newPass = nanoid(10)
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(newPass, saltRounds)
@@ -150,15 +159,14 @@ const putNewPass = async (req, res) => {
     catch (err) {
         console.log(err)
     }
-
 }
 
 
 //login user
 const postLoginUser = async (req, res) => {
+
     const { body } = req;
     const { email, password } = body;
-
 
     try {
         await db.connect()
